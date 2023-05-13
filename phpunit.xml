@@ -19,5 +19,8 @@
         <include>
             <directory>src</directory>
         </include>
+        <exclude>
+            <directory>src/entity</directory>
+        </exclude>
     </source>
 </phpunit>
