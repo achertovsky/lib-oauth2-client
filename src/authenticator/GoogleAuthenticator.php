@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace achertovsky\oauth\authenticator;
 
-use achertovsky\oauth\entity\UserData;
+use RuntimeException;
 use Psr\Http\Client\ClientInterface;
-use achertovsky\oauth\entity\Request;
-use achertovsky\oauth\exception\EmailNotVerifiedException;
+use achertovsky\oauth\entity\UserData;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Client\ClientExceptionInterface;
 use achertovsky\oauth\exception\OauthException;
 use achertovsky\oauth\exception\WrongOauthScopeException;
-use Psr\Http\Client\ClientExceptionInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use RuntimeException;
+use achertovsky\oauth\exception\EmailNotVerifiedException;
 
 class GoogleAuthenticator implements AuthenticatorInterface
 {

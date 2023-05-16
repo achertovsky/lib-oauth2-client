@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace achertovsky\tests\unit;
 
+use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\StreamInterface;
@@ -14,9 +15,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 use achertovsky\oauth\exception\OauthException;
 use achertovsky\oauth\authenticator\GoogleAuthenticator;
 use achertovsky\oauth\exception\WrongOauthScopeException;
-use achertovsky\oauth\authenticator\RequestBuilderInterface;
 use achertovsky\oauth\exception\EmailNotVerifiedException;
-use RuntimeException;
+use achertovsky\oauth\authenticator\RequestBuilderInterface;
 
 class GoogleAuthenticatorTest extends TestCase
 {

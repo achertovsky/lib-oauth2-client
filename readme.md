@@ -2,7 +2,7 @@
 Lib called to reduce hassle in projects with oauth2. Expected to be convenient solution for the purpose.
 
 ## usage
-tba
+To check usage cases, please, refer to `tests/unit/Oauth2Test.php`, `tests/unit/GoogleAuthenticatorTest.php`. Those tests explain how Oauth2 should be used in your application.
 
 # Development
 ## install env
