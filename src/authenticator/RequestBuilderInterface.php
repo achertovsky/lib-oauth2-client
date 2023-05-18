@@ -10,7 +10,7 @@ interface RequestBuilderInterface
 {
     public function buildRequest(
         string $uri,
-        array $body,
+        string $jsonBody,
         string $method = 'GET'
     ): RequestInterface;
 }

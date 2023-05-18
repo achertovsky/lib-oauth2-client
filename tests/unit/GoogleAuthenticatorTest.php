@@ -119,13 +119,15 @@ class GoogleAuthenticatorTest extends TestCase
             ->method('buildRequest')
             ->with(
                 self::URI,
-                [
-                    'grant_type' => 'authorization_code',
-                    'client_id' => self::CLIENT_ID,
-                    'client_secret' => self::CLIENT_SECRET,
-                    'redirect_uri' => self::REDIRECT_URL,
-                    'code' => self::AUTH_CODE
-                ]
+                json_encode(
+                    [
+                        'grant_type' => 'authorization_code',
+                        'client_id' => self::CLIENT_ID,
+                        'client_secret' => self::CLIENT_SECRET,
+                        'redirect_uri' => self::REDIRECT_URL,
+                        'code' => self::AUTH_CODE
+                    ]
+                )
             )
             ->willReturn($requestMock)
         ;

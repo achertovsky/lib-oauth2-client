@@ -96,13 +96,15 @@ class GoogleAuthenticator implements AuthenticatorInterface
     {
         return $this->requestBuilder->buildRequest(
             $this->authenticateUrl,
-            [
-                'grant_type' => 'authorization_code',
-                'client_id' => $this->clientId,
-                'client_secret' => $this->clientSecret,
-                'redirect_uri' => $this->redirectUrl,
-                'code' => $code,
-            ],
+            json_encode(
+                [
+                    'grant_type' => 'authorization_code',
+                    'client_id' => $this->clientId,
+                    'client_secret' => $this->clientSecret,
+                    'redirect_uri' => $this->redirectUrl,
+                    'code' => $code,
+                ]
+            ),
             'POST'
         );
     }
