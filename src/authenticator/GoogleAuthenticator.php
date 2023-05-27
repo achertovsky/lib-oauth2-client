@@ -75,18 +75,29 @@ class GoogleAuthenticator implements AuthenticatorInterface
 
     private function fetchIdTokenData(string $code): string
     {
+        $stringContent = $this->fetchContent(
+            $this->prepareRequest($code)
+        );
         $tokenData = json_decode(
-            $this->fetchContent(
-                $this->prepareRequest($code)
-            ),
+            $stringContent,
             true
         );
         if ($tokenData === null) {
-            throw new OauthException('Not a json data');
+            throw new OauthException(
+                sprintf(
+                    'Not a json data: %s',
+                    $stringContent
+                )
+            );
         }
 
         if (!array_key_exists('id_token', $tokenData)) {
-            throw new WrongOauthScopeException('Expected payload not received');
+            throw new WrongOauthScopeException(
+                sprintf(
+                    'Expected payload not received: %s',
+                    $stringContent
+                )
+            );
         }
 
         return $tokenData['id_token'];
