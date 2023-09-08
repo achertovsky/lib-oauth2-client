@@ -1,0 +1,6 @@
+{
+    "access_token": "ya29.Glins-oLtuljNVfthQU2bpJVJPTu",
+    "token_type": "Bearer",
+    "expires_in": 3600,
+    "id_token": "whatever.eyJlbWFpbCI6ImVtYWlsQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoiSm9obiBEb2UiLCJwaWN0dXJlIjoiaHR0cDovL3BpY3R1cmUuY29tIn0.whatever"
+}

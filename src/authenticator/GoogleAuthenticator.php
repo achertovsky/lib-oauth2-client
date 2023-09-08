@@ -17,6 +17,8 @@ class GoogleAuthenticator implements AuthenticatorInterface
 {
     private const EMAIL = 'email';
     private const EMAIL_VERIFIED = 'email_verified';
+    private const NAME = 'name';
+    private const PICTURE_URL = 'picture';
 
     public function __construct(
         private ClientInterface $client,
@@ -39,7 +41,11 @@ class GoogleAuthenticator implements AuthenticatorInterface
         $payload = $this->fetchPayload($code);
         $this->validatePayload($payload);
 
-        return new UserData($payload[self::EMAIL]);
+        return new UserData(
+            $payload[self::EMAIL],
+            $payload[self::NAME] ?? null,
+            $payload[self::PICTURE_URL] ?? null
+        );
     }
 
     private function fetchPayload(string $code): array

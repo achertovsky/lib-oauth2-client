@@ -26,6 +26,8 @@ class GoogleAuthenticatorTest extends TestCase
     private const CLIENT_ID = 'appid';
     private const CLIENT_SECRET = 'appsecret';
     private const REDIRECT_URL = 'http://baseurl.com';
+    private const NAME = 'John Doe';
+    private const PICTURE_URL = 'http://picture.com';
 
     private MockObject $clientMock;
     private MockObject $builderMock;
@@ -47,17 +49,40 @@ class GoogleAuthenticatorTest extends TestCase
         );
     }
 
-    public function testAuthenticate(): void
-    {
-        $this->configureMocks(__DIR__ . '/../fixture/google_response.json');
+    /**
+     * @dataProvider dataAuthenticate
+     */
+    public function testAuthenticate(
+        UserData $expectedUserData,
+        string $payloadFixture
+    ): void {
+        $this->configureMocks($payloadFixture);
         $this->assertEquals(
-            new UserData(
-                self::EXPECTED_EMAIL
-            ),
+            $expectedUserData,
             $this->authenticator->authenticate(
                 self::AUTH_CODE
             )
         );
+    }
+
+    public static function dataAuthenticate(): array
+    {
+        return [
+            'response for userInfo.email scope' => [
+                new UserData(
+                    self::EXPECTED_EMAIL
+                ),
+                __DIR__ . '/../fixture/google_response.json'
+            ],
+            'user profile with name and picture' => [
+                new UserData(
+                    self::EXPECTED_EMAIL,
+                    self::NAME,
+                    self::PICTURE_URL
+                ),
+                __DIR__ . '/../fixture/google_response_with_name_and_avatar_url.json'
+            ]
+        ];
     }
 
     public static function dataIssueAuthenticate(): array
