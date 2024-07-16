@@ -14,5 +14,11 @@
             "achertovsky\\oauth\\": "src/"
         }
     },
-    "minimum-stability": "stable"
+    "autoload-dev": {
+        "psr-4": {
+            "achertovsky\\oauth\\tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "version": "1.0.0"
 }

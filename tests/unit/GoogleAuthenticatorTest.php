@@ -17,6 +17,7 @@ use achertovsky\oauth\authenticator\GoogleAuthenticator;
 use achertovsky\oauth\exception\WrongOauthScopeException;
 use achertovsky\oauth\exception\EmailNotVerifiedException;
 use achertovsky\oauth\authenticator\RequestBuilderInterface;
+use Psr\Http\Client\ClientExceptionInterface;
 
 class GoogleAuthenticatorTest extends TestCase
 {
@@ -186,5 +187,19 @@ class GoogleAuthenticatorTest extends TestCase
             ->with($requestMock)
             ->willReturn($responseMock)
         ;
+    }
+
+    public function testClientThrowsPsrException(): void
+    {
+        $this->expectException(OauthException::class);
+
+        $this->clientMock
+            ->method('sendRequest')
+            ->willThrowException(
+                $this->createMock(ClientExceptionInterface::class)
+            )
+        ;
+
+        $this->authenticator->authenticate(self::AUTH_CODE);
     }
 }

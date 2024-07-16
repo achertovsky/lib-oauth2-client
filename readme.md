@@ -14,3 +14,7 @@ docker run --rm -it -u $(id -u):$(id -g) -w /tmp -v ${PWD}:/tmp lib-oauth2-clien
 ```
 docker run --rm -it -u $(id -u):$(id -g) -w /tmp -v ${PWD}:/tmp lib-oauth2-client vendor/bin/phpunit
 ```
+## measuing coverage
+```
+docker run --rm -it -u $(id -u):$(id -g) -w /tmp -v ${PWD}:/tmp lib-oauth2-client php -dpcov.enabled=1 -dpcov.directory=/tmp vendor/bin/phpunit --coverage-text
+```

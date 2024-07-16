@@ -18,6 +18,7 @@
     <source restrictDeprecations="true" restrictNotices="true" restrictWarnings="true">
         <include>
             <directory>src</directory>
+            <directory suffix="Fake.php">tests</directory>
         </include>
         <exclude>
             <directory>src/entity</directory>

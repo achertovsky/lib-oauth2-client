@@ -31,6 +31,7 @@ class GoogleAuthenticator implements AuthenticatorInterface
     }
 
     /**
+     * @todo wrap clientexception
      * @throws ClientExceptionInterface
      * @throws OauthException
      * @throws WrongOauthScopeException
@@ -128,10 +129,11 @@ class GoogleAuthenticator implements AuthenticatorInterface
 
     private function fetchContent(RequestInterface $request): string
     {
-        $response = $this->client->sendRequest($request);
         try {
+            $response = $this->client->sendRequest($request);
+
             return $response->getBody()->getContents();
-        } catch (RuntimeException $exception) {
+        } catch (RuntimeException|ClientExceptionInterface $exception) {
             throw new OauthException('Failed to fetch token');
         }
     }
