@@ -1,3 +1,7 @@
+# 1.0.1
+## Fixed
+- constant content to not have spaces
+
 # 1.0.0
 ## Added
 - Fake for implementators
