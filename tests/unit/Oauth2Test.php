@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace achertovsky\tests\unit;
+namespace achertovsky\oauth\tests\unit;
 
 use achertovsky\oauth\Oauth2;
 use PHPUnit\Framework\TestCase;

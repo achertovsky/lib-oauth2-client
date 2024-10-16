@@ -1,3 +1,7 @@
+# 1.0.2
+## Added
+- Fake authenticator
+
 # 1.0.1
 ## Fixed
 - constant content to not have spaces

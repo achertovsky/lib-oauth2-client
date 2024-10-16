@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace achertovsky\tests\unit;
+namespace achertovsky\oauth\tests\unit;
 
 use RuntimeException;
 use PHPUnit\Framework\TestCase;
