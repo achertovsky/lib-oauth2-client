@@ -12,12 +12,13 @@ use achertovsky\oauth\entity\UserData;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 use achertovsky\oauth\exception\OauthException;
 use achertovsky\oauth\authenticator\GoogleAuthenticator;
 use achertovsky\oauth\exception\WrongOauthScopeException;
 use achertovsky\oauth\exception\EmailNotVerifiedException;
-use achertovsky\oauth\authenticator\RequestBuilderInterface;
-use Psr\Http\Client\ClientExceptionInterface;
 
 class GoogleAuthenticatorTest extends TestCase
 {
@@ -31,18 +32,21 @@ class GoogleAuthenticatorTest extends TestCase
     private const PICTURE_URL = 'http://picture.com';
 
     private MockObject $clientMock;
-    private MockObject $builderMock;
+    private MockObject $requestFactoryMock;
+    private MockObject $streamFactoryMock;
 
     private GoogleAuthenticator $authenticator;
 
     protected function setUp(): void
     {
         $this->clientMock = $this->createMock(ClientInterface::class);
-        $this->builderMock = $this->createMock(RequestBuilderInterface::class);
+        $this->requestFactoryMock = $this->createMock(RequestFactoryInterface::class);
+        $this->streamFactoryMock = $this->createMock(StreamFactoryInterface::class);
 
         $this->authenticator = new GoogleAuthenticator(
             $this->clientMock,
-            $this->builderMock,
+            $this->requestFactoryMock,
+            $this->streamFactoryMock,
             self::URI,
             self::CLIENT_ID,
             self::CLIENT_SECRET,
@@ -51,13 +55,67 @@ class GoogleAuthenticatorTest extends TestCase
     }
 
     /**
-     * @dataProvider dataAuthenticate
+     * @dataProvider dataAuthenticateSuccess
      */
-    public function testAuthenticate(
+    public function testAuthenticateSuccess(
         UserData $expectedUserData,
         string $payloadFixture
     ): void {
-        $this->configureMocks($payloadFixture);
+        $streamMock = $this->createMock(StreamInterface::class);
+        $this->streamFactoryMock
+            ->expects($this->once())
+            ->method('createStream')
+            ->with(
+                json_encode(
+                    [
+                        'code' => self::AUTH_CODE,
+                        'client_id' => self::CLIENT_ID,
+                        'client_secret' => self::CLIENT_SECRET,
+                        'redirect_uri' => self::REDIRECT_URL,
+                        'grant_type' => 'authorization_code',
+                    ]
+                )
+            )
+            ->willReturn($streamMock)
+        ;
+
+        $requestMock = $this->createMock(RequestInterface::class);
+        $requestMock
+            ->expects($this->once())
+            ->method('withBody')
+            ->with($streamMock)
+            ->willReturnSelf()
+        ;
+        $this->requestFactoryMock
+            ->expects($this->once())
+            ->method('createRequest')
+            ->with(
+                'POST',
+                self::URI
+            )
+            ->willReturn($requestMock)
+        ;
+
+        $streamMock
+            ->method('getContents')
+            ->willReturn(
+                file_get_contents($payloadFixture)
+            )
+        ;
+
+        $responseMock = $this->createMock(ResponseInterface::class);
+        $responseMock
+            ->method('getBody')
+            ->willReturn($streamMock)
+        ;
+
+        $this->clientMock
+            ->expects($this->once())
+            ->method('sendRequest')
+            ->with($requestMock)
+            ->willReturn($responseMock)
+        ;
+
         $this->assertEquals(
             $expectedUserData,
             $this->authenticator->authenticate(
@@ -66,7 +124,7 @@ class GoogleAuthenticatorTest extends TestCase
         );
     }
 
-    public static function dataAuthenticate(): array
+    public static function dataAuthenticateSuccess(): array
     {
         return [
             'response for userInfo.email scope' => [
@@ -124,56 +182,47 @@ class GoogleAuthenticatorTest extends TestCase
         string $expectedException
     ): void {
         $this->expectException($expectedException);
-        $this->configureMocks($fileToRead);
-        $this->authenticator->authenticate(self::AUTH_CODE);
-    }
-
-    public function testIssueAuthenticateStreamContentsIssue(): void
-    {
-        $this->expectException(OauthException::class);
-        $this->configureMocks();
-        $this->authenticator->authenticate(self::AUTH_CODE);
-    }
-
-    private function configureMocks(
-        ?string $fileName = null
-    ): void {
-        $requestMock = $this->createMock(RequestInterface::class);
-
-        $this->builderMock
+        $streamMock = $this->createMock(StreamInterface::class);
+        $this->streamFactoryMock
             ->expects($this->once())
-            ->method('buildRequest')
+            ->method('createStream')
             ->with(
-                self::URI,
                 json_encode(
                     [
-                        'grant_type' => 'authorization_code',
+                        'code' => self::AUTH_CODE,
                         'client_id' => self::CLIENT_ID,
                         'client_secret' => self::CLIENT_SECRET,
                         'redirect_uri' => self::REDIRECT_URL,
-                        'code' => self::AUTH_CODE
+                        'grant_type' => 'authorization_code',
                     ]
                 )
+            )
+            ->willReturn($streamMock)
+        ;
+
+        $requestMock = $this->createMock(RequestInterface::class);
+        $requestMock
+            ->expects($this->once())
+            ->method('withBody')
+            ->with($streamMock)
+            ->willReturnSelf()
+        ;
+        $this->requestFactoryMock
+            ->expects($this->once())
+            ->method('createRequest')
+            ->with(
+                'POST',
+                self::URI
             )
             ->willReturn($requestMock)
         ;
 
-        $streamMock = $this->createMock(StreamInterface::class);
-        if ($fileName !== null) {
-            $streamMock
-                ->method('getContents')
-                ->willReturn(
-                    file_get_contents($fileName)
-                )
-            ;
-        } else {
-            $streamMock
-                ->method('getContents')
-                ->willThrowException(
-                    new RuntimeException()
-                )
-            ;
-        }
+        $streamMock
+            ->method('getContents')
+            ->willReturn(
+                file_get_contents($fileToRead)
+            )
+        ;
 
         $responseMock = $this->createMock(ResponseInterface::class);
         $responseMock
@@ -187,11 +236,96 @@ class GoogleAuthenticatorTest extends TestCase
             ->with($requestMock)
             ->willReturn($responseMock)
         ;
+
+        $this->authenticator->authenticate(self::AUTH_CODE);
+    }
+
+    public function testIssueAuthenticateStreamContentsIssue(): void
+    {
+        $this->expectException(OauthException::class);
+        $streamMock = $this->createMock(StreamInterface::class);
+        $this->streamFactoryMock
+            ->expects($this->once())
+            ->method('createStream')
+            ->with(
+                json_encode(
+                    [
+                        'code' => self::AUTH_CODE,
+                        'client_id' => self::CLIENT_ID,
+                        'client_secret' => self::CLIENT_SECRET,
+                        'redirect_uri' => self::REDIRECT_URL,
+                        'grant_type' => 'authorization_code',
+                    ]
+                )
+            )
+            ->willReturn($streamMock)
+        ;
+
+        $requestMock = $this->createMock(RequestInterface::class);
+        $requestMock
+            ->expects($this->once())
+            ->method('withBody')
+            ->with($streamMock)
+            ->willReturnSelf()
+        ;
+        $this->requestFactoryMock
+            ->expects($this->once())
+            ->method('createRequest')
+            ->with(
+                'POST',
+                self::URI
+            )
+            ->willReturn($requestMock)
+        ;
+
+        $streamMock
+            ->method('getContents')
+            ->willThrowException(
+                new RuntimeException()
+            )
+        ;
+
+        $this->authenticator->authenticate(self::AUTH_CODE);
     }
 
     public function testClientThrowsPsrException(): void
     {
         $this->expectException(OauthException::class);
+
+        $streamMock = $this->createMock(StreamInterface::class);
+        $this->streamFactoryMock
+            ->expects($this->once())
+            ->method('createStream')
+            ->with(
+                json_encode(
+                    [
+                        'code' => self::AUTH_CODE,
+                        'client_id' => self::CLIENT_ID,
+                        'client_secret' => self::CLIENT_SECRET,
+                        'redirect_uri' => self::REDIRECT_URL,
+                        'grant_type' => 'authorization_code',
+                    ]
+                )
+            )
+            ->willReturn($streamMock)
+        ;
+
+        $requestMock = $this->createMock(RequestInterface::class);
+        $requestMock
+            ->expects($this->once())
+            ->method('withBody')
+            ->with($streamMock)
+            ->willReturnSelf()
+        ;
+        $this->requestFactoryMock
+            ->expects($this->once())
+            ->method('createRequest')
+            ->with(
+                'POST',
+                self::URI
+            )
+            ->willReturn($requestMock)
+        ;
 
         $this->clientMock
             ->method('sendRequest')

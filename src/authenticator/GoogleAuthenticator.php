@@ -8,7 +8,9 @@ use RuntimeException;
 use Psr\Http\Client\ClientInterface;
 use achertovsky\oauth\entity\UserData;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 use achertovsky\oauth\exception\OauthException;
 use achertovsky\oauth\exception\WrongOauthScopeException;
 use achertovsky\oauth\exception\EmailNotVerifiedException;
@@ -22,7 +24,8 @@ class GoogleAuthenticator implements AuthenticatorInterface
 
     public function __construct(
         private ClientInterface $client,
-        private RequestBuilderInterface $requestBuilder,
+        private RequestFactoryInterface $requestFactory,
+        private StreamFactoryInterface $streamFactory,
         private string $authenticateUrl,
         private string $clientId,
         private string $clientSecret,
@@ -112,19 +115,26 @@ class GoogleAuthenticator implements AuthenticatorInterface
 
     private function prepareRequest(string $code): RequestInterface
     {
-        return $this->requestBuilder->buildRequest(
-            $this->authenticateUrl,
-            json_encode(
-                [
-                    'grant_type' => 'authorization_code',
-                    'client_id' => $this->clientId,
-                    'client_secret' => $this->clientSecret,
-                    'redirect_uri' => $this->redirectUrl,
-                    'code' => $code,
-                ]
-            ),
-            'POST'
+        $request = $this->requestFactory->createRequest(
+            'POST',
+            $this->authenticateUrl
         );
+
+        $request = $request->withBody(
+            $this->streamFactory->createStream(
+                json_encode(
+                    [
+                        'code' => $code,
+                        'client_id' => $this->clientId,
+                        'client_secret' => $this->clientSecret,
+                        'redirect_uri' => $this->redirectUrl,
+                        'grant_type' => 'authorization_code',
+                    ]
+                )
+            )
+        );
+
+        return $request;
     }
 
     private function fetchContent(RequestInterface $request): string

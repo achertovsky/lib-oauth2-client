@@ -1,3 +1,7 @@
+# 2.0.0
+## Changed
+- Replaced `achertovsky\oauth\authenticator\RequestBuilderInterface` by `Psr\Http\Message\StreamFactoryInterface` + `Psr\Http\Message\RequestFactoryInterface` inside of `achertovsky\oauth\authenticator\GoogleAuthenticator`
+
 # 1.0.2
 ## Added
 - Fake authenticator
